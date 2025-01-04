@@ -1,0 +1,993 @@
+<html>
+<head>
+    <base href=".">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicaciones GHS</title>
+    <style>
+        :root {
+            --primary-color: #1a1f2c;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --bg-color: #f5f6fa;
+            --text-color: #2c3e50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 0.5rem;
+        }
+
+        .header {
+            background: linear-gradient(to right, var(--primary-color), #2c3e50);
+            padding: 0.7rem 1rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .header img {
+            height: 50px;
+            width: 50px;
+            margin-right: 1rem;
+            border-radius: 50%;
+            object-fit: cover;
+            background: white;
+            padding: 4px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            font-family: 'GoodTimesRg-Regular', sans-serif;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            margin-left: auto;
+            position: relative;
+        }
+
+        .btn-new, .btn-edit {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
+            height: 36px;
+            width: auto;
+            min-width: 90px;
+            justify-content: center;
+        }
+
+        .btn-edit {
+            background: #f39c12;
+            color: white;
+            border: none;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.7rem;
+            height: auto;
+            width: auto;
+            min-width: 0;
+            justify-content: center;
+        }
+
+        .btn-new:hover {
+            background: #219a52;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-edit:hover {
+            background: #d68910;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .project-manager {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            position: absolute;
+            top: 80px;
+            left: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 99;
+            max-height: calc(100vh - 100px);
+            width: 280px;
+            transition: all 0.3s ease;
+            transform: translateX(-100%);
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar h2 svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--primary-color);
+        }
+
+        .sidebar-toggle {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
+            height: 36px;
+            width: auto;
+            min-width: 90px;
+            justify-content: center;
+            position: static;
+            z-index: 100;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .project-viewer {
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .code-input {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            resize: vertical;
+            background: #f8f9fa;
+        }
+
+        .preview {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 0;
+            background: white;
+            position: relative;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .btn {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .project-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        .fullscreen-btn {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.5rem;
+            background: #ff3b30;
+            color: white;
+            border: none;
+            padding: 0.35rem 0.7rem;
+            border-radius: 20px;
+            cursor: move;
+            z-index: 100;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+            user-select: none;
+            touch-action: none;
+            will-change: transform;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            min-width: 80px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+
+        .fullscreen-btn.minimized {
+            background: #ffb08a;
+        }
+
+        .fullscreen-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .fullscreen-btn.dragging {
+            opacity: 0.9;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            cursor: ns-resize;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .fullscreen-preview {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: white;
+            z-index: 1000;
+            padding: 0;
+        }
+
+        .edit-mode {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .view-mode {
+            display: none;
+            height: 100%;
+        }
+
+        .view-mode.visible {
+            display: block;
+            height: 100%;
+        }
+
+        .edit-mode.hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade {
+            animation: fadeIn 0.3s ease;
+        }
+
+        #projectName {
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            flex: 1;
+            font-size: 1rem;
+        }
+
+        .btn-upload {
+            background: #8e44ad;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            border: none;
+            font-weight: 500;
+        }
+
+        .btn-upload:hover {
+            background: #732d91;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-upload svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .project-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .project-item {
+            padding: 0.5rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .project-item-actions {
+            display: flex;
+            gap: 0.3rem;
+            align-items: center;
+        }
+
+        .project-name {
+            flex: 1;
+            cursor: pointer;
+            text-transform: capitalize;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+            letter-spacing: 0.2px;
+            margin-right: 0.5rem;
+        }
+
+        .project-name:hover {
+            color: #3498db;
+            transition: color 0.2s ease;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.7rem;
+            height: auto;
+            width: auto;
+            min-width: 0;
+            justify-content: center;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+
+        .delete-btn svg {
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
+        }
+
+        @font-face {
+            font-family: 'GoodTimesRg-Regular';
+            src: url('https://cdn.jsdelivr.net/gh/kremalicious/goodtimesrg@1.002/GoodTimesRg-Regular.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/gh/kremalicious/goodtimesrg@1.002/GoodTimesRg-Regular.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @media (max-width: 768px) {
+            .project-manager {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: row;
+                gap: 0.5rem;
+                padding: 0.5rem;
+            }
+            
+            .header-actions {
+                width: auto;
+                justify-content: flex-end;
+            }
+            
+            .btn-new, .btn-edit {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+                height: 30px;
+                min-width: 70px;
+            }
+            
+            .sidebar {
+                max-height: 300px;
+                overflow-y: auto;
+                left: 0;
+                top: 60px;
+                width: 100%;
+                border-radius: 0;
+                padding: 1rem;
+            }
+
+            .sidebar-toggle {
+                top: 0.5rem;
+                left: 0.5rem;
+            }
+            
+            .fullscreen-btn {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.7rem;
+                min-width: 60px;
+            }
+            
+            .project-controls {
+                  flex-wrap: wrap;
+              }
+              
+            .btn, .btn-upload {
+              padding: 0.6rem 1rem;
+              font-size: 0.8rem;
+            }
+
+            #projectName {
+              padding: 0.6rem;
+              font-size: 0.9rem;
+            }
+            
+            .code-input {
+              height: 150px;
+              padding: 0.8rem;
+            }
+
+            .btn-new {
+                font-size: 0.8rem;
+                min-width: 70px;
+            }
+
+            .header-actions {
+                 gap: 0.3rem;
+            }
+
+            .btn-edit, .delete-btn {
+               padding: 0.2rem 0.4rem;
+               font-size: 0.7rem;
+               height: 25px;
+               min-width: 50px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .project-manager {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                max-height: 300px;
+                overflow-y: auto;
+                  left: 0;
+                    top: 60px;
+                     width: 100%;
+                    border-radius: 0;
+                    padding: 1rem;
+                }
+
+                .sidebar-toggle {
+                  top: 0.5rem;
+                  left: 0.5rem;
+                }
+            .btn-edit, .delete-btn {
+               padding: 0.2rem 0.4rem;
+               font-size: 0.7rem;
+               height: 25px;
+               min-width: 50px;
+             }
+        }
+
+        .btn-icon {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <img src="https://i.ibb.co/6HmZTtY/descarga.png" alt="GHS Logo">
+        <h1>Grupo Hibrida</h1>
+        <div class="header-actions">
+            <button class="btn-new" onclick="createNewProject()">
+                <svg class="btn-icon" viewBox="0 0 24 24">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+                Nuevo
+            </button>
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                
+                Aplicaciones
+            </button>
+        </div>
+    </header>
+    <div class="container">
+        
+        <div class="project-manager">
+            <aside class="sidebar" id="sidebar">
+                <h2>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                    </svg>
+                    App Store
+                </h2>
+                <ul class="project-list" id="projectList">
+                    <!-- Los proyectos se cargarán aquí dinámicamente -->
+                </ul>
+            </aside>
+            <main class="project-viewer">
+                <div class="edit-mode" id="editMode">
+                    <div class="project-controls">
+                        <input type="text" id="projectName" placeholder="Nombre del proyecto">
+                        <input type="file" id="fileInput" accept=".html,.htm" style="display: none;">
+                        <button class="btn btn-upload" onclick="document.getElementById(&apos;fileInput&apos;).click()">
+                            <svg class="btn-icon" viewBox="0 0 24 24">
+                                <path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/>
+                            </svg>
+                            Cargar Archivo
+                        </button>
+                        <button class="btn" onclick="saveProject()">Guardar Proyecto</button>
+                    </div>
+                    <textarea class="code-input" id="codeInput" placeholder="Ingresa tu c&#xf3;digo HTML aqu&#xed;..."></textarea>
+                </div>
+                <div class="view-mode" id="viewMode">
+                    <div class="preview" id="preview">
+                        <button class="fullscreen-btn" onclick="toggleFullscreen()">Maximizar</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>let projectManager;
+class ProjectManager {
+  constructor() {
+    try {
+      this.projects = JSON.parse(localStorage.getItem('projects')) || {};
+    } catch (error) {
+      console.error('Error loading projects from localStorage:', error);
+      this.projects = {};
+    }
+    this.currentProject = null;
+    this.isFullscreen = false;
+    this.isEditMode = true;
+    this.isSidebarOpen = false;
+    this.init();
+  }
+  saveToLocalStorage() {
+    try {
+      localStorage.setItem('projects', JSON.stringify(this.projects));
+      return true;
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+      alert('Error al guardar el proyecto. Es posible que el almacenamiento esté lleno.');
+      return false;
+    }
+  }
+  saveProject(name, code) {
+    if (!name) {
+      alert('Por favor, ingrese un nombre para el proyecto');
+      return false;
+    }
+    try {
+      this.projects[name] = {
+        name: name,
+        code: code,
+        lastModified: new Date().toISOString()
+      };
+      if (this.saveToLocalStorage()) {
+        this.renderProjectList();
+        this.setEditMode(false);
+        this.updatePreview(code);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error saving project:', error);
+      alert('Error al guardar el proyecto');
+      return false;
+    }
+  }
+  checkStorageAvailability() {
+    try {
+      const test = '__storage_test__';
+      localStorage.setItem(test, test);
+      localStorage.removeItem(test);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  init() {
+    if (!this.checkStorageAvailability()) {
+      alert('¡Advertencia! El almacenamiento local no está disponible. Sus proyectos no se guardarán entre sesiones.');
+    }
+    this.renderProjectList();
+    this.setupEventListeners();
+    this.toggleSidebar(false);
+  }
+  renderProjectList() {
+    const projectList = document.getElementById('projectList');
+    projectList.innerHTML = '';
+    Object.values(this.projects).forEach(project => {
+      const li = document.createElement('li');
+      li.className = 'project-item animate-fade';
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'project-name';
+      nameSpan.textContent = project.name;
+      nameSpan.onclick = () => this.loadProject(project.name);
+      const projectActions = document.createElement('div');
+      projectActions.className = 'project-item-actions';
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn-edit';
+      editBtn.innerHTML = `
+                <svg class="btn-icon" viewBox="0 0 24 24">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                </svg>
+                Editar
+            `;
+      editBtn.onclick = () => {
+        this.loadProject(project.name);
+        this.setEditMode(true);
+      };
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.innerHTML = `
+                <svg viewBox="0 0 24 24">
+                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+                Eliminar
+            `;
+      deleteBtn.onclick = e => this.deleteProject(project.name, e);
+      projectActions.appendChild(editBtn);
+      projectActions.appendChild(deleteBtn);
+      li.appendChild(nameSpan);
+      li.appendChild(projectActions);
+      projectList.appendChild(li);
+    });
+  }
+  loadProject(name) {
+    const project = this.projects[name];
+    if (project) {
+      this.currentProject = name;
+      document.getElementById('projectName').value = name;
+      document.getElementById('codeInput').value = project.code;
+      this.updatePreview(project.code);
+      this.setEditMode(false);
+      this.toggleSidebar(false);
+    }
+  }
+  updatePreview(code) {
+    const preview = document.getElementById('preview');
+    const existingIframe = preview.querySelector('iframe');
+    if (existingIframe) {
+      preview.removeChild(existingIframe);
+    }
+    const iframe = document.createElement('iframe');
+    preview.appendChild(iframe);
+    iframe.contentDocument.open();
+    iframe.contentDocument.write(code);
+    iframe.contentDocument.close();
+  }
+  setEditMode(isEdit) {
+    this.isEditMode = isEdit;
+    const editMode = document.getElementById('editMode');
+    const viewMode = document.getElementById('viewMode');
+    if (isEdit) {
+      editMode.classList.remove('hidden');
+      viewMode.classList.remove('visible');
+    } else {
+      editMode.classList.add('hidden');
+      viewMode.classList.add('visible');
+    }
+  }
+  setupEventListeners() {
+    document.getElementById('codeInput').addEventListener('input', e => {
+      this.updatePreview(e.target.value);
+    });
+    document.getElementById('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = event => {
+          const code = event.target.result;
+          document.getElementById('codeInput').value = code;
+          this.updatePreview(code);
+          const fileName = file.name.replace(/\.[^/.]+$/, "");
+          document.getElementById('projectName').value = fileName;
+          if (this.currentProject && this.projects[this.currentProject] && this.projects[this.currentProject].name !== fileName) {
+            this.projects[fileName] = {
+              ...this.projects[this.currentProject]
+            };
+            this.projects[fileName].name = fileName;
+            this.projects[fileName].code = code;
+            delete this.projects[this.currentProject];
+            this.currentProject = fileName;
+            this.saveToLocalStorage();
+            this.renderProjectList();
+          }
+        };
+        reader.onerror = error => {
+          console.error('Error reading file:', error);
+          alert('Error al leer el archivo');
+        };
+        reader.readAsText(file);
+      }
+    });
+    window.addEventListener('resize', () => {
+      if (window.innerWidth <= 768) {
+        if (this.isFullscreen) {
+          this.disableDrag();
+        }
+      } else {
+        if (this.isFullscreen) {
+          this.enableDrag();
+        }
+      }
+    });
+  }
+  createProject(name) {
+    if (!name) {
+      alert('Por favor, ingrese un nombre para el proyecto');
+      return false;
+    }
+    if (this.projects[name]) {
+      if (!confirm('Ya existe un proyecto con este nombre. ¿Desea sobrescribirlo?')) {
+        return false;
+      }
+    }
+    try {
+      this.projects[name] = {
+        name: name,
+        code: '',
+        lastModified: new Date().toISOString()
+      };
+      if (this.saveToLocalStorage()) {
+        this.renderProjectList();
+        this.loadProject(name);
+        this.setEditMode(true);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error creating project:', error);
+      alert('Error al crear el proyecto');
+      return false;
+    }
+  }
+  deleteProject(name, event) {
+    event.stopPropagation();
+    if (confirm(`¿Está seguro que desea eliminar el proyecto "${name}"?`)) {
+      delete this.projects[name];
+      this.saveToLocalStorage();
+      this.renderProjectList();
+      if (this.currentProject === name) {
+        this.currentProject = null;
+        document.getElementById('projectName').value = '';
+        document.getElementById('codeInput').value = '';
+        document.getElementById('editButton').style.display = 'none';
+        this.updatePreview('');
+      }
+    }
+  }
+  toggleFullscreen() {
+    const preview = document.getElementById('preview');
+    const fullscreenBtn = preview.querySelector('.fullscreen-btn');
+    this.isFullscreen = !this.isFullscreen;
+    if (this.isFullscreen) {
+      preview.classList.add('fullscreen-preview');
+      fullscreenBtn.textContent = 'Minimizar';
+      fullscreenBtn.classList.add('minimized');
+      if (window.innerWidth <= 768) {
+        fullscreenBtn.style.cursor = 'pointer';
+        this.disableDrag();
+      } else {
+        this.enableDrag();
+      }
+    } else {
+      preview.classList.remove('fullscreen-preview');
+      fullscreenBtn.textContent = 'Maximizar';
+      fullscreenBtn.classList.remove('minimized');
+      this.enableDrag();
+    }
+  }
+  disableDrag() {
+    const button = document.querySelector('.fullscreen-btn');
+    button.style.cursor = 'pointer';
+    button.removeEventListener('touchstart', this.dragStart, false);
+    button.removeEventListener('touchend', this.dragEnd, false);
+    button.removeEventListener('touchmove', this.drag, false);
+    button.removeEventListener('mousedown', this.dragStart, false);
+    button.removeEventListener('mouseup', this.dragEnd, false);
+    button.removeEventListener('mousemove', this.drag, false);
+    button.removeEventListener('mouseleave', this.dragEnd, false);
+  }
+  enableDrag() {
+    const button = document.querySelector('.fullscreen-btn');
+    button.style.cursor = 'move';
+    let isDragging = false;
+    let currentX;
+    let currentY;
+    let initialX;
+    let initialY;
+    let xOffset = 0;
+    let yOffset = 0;
+    this.dragStart = e => {
+      if (e.type === "touchstart") {
+        initialX = e.touches[0].clientX - xOffset;
+        initialY = e.touches[0].clientY - yOffset;
+      } else {
+        initialX = e.clientX - xOffset;
+        initialY = e.clientY - yOffset;
+      }
+      if (e.target === button) {
+        isDragging = true;
+        button.classList.add('dragging');
+      }
+    };
+    this.dragEnd = () => {
+      isDragging = false;
+      button.classList.remove('dragging');
+      if (this.isFullscreen) {
+        localStorage.setItem('buttonPosition', JSON.stringify({
+          x: xOffset,
+          y: yOffset
+        }));
+      }
+    };
+    this.drag = e => {
+      if (isDragging) {
+        e.preventDefault();
+        if (e.type === "touchmove") {
+          currentY = e.touches[0].clientY - initialY;
+          currentX = xOffset;
+        } else {
+          currentY = e.clientY - initialY;
+          currentX = xOffset;
+        }
+        xOffset = currentX;
+        yOffset = currentY;
+        const preview = document.getElementById('preview');
+        const previewRect = preview.getBoundingClientRect();
+        const buttonRect = button.getBoundingClientRect();
+        const maxY = previewRect.height - buttonRect.height;
+        yOffset = Math.min(Math.max(yOffset, 0), maxY);
+        button.style.bottom = `${yOffset}px`;
+        button.style.transform = 'none';
+      }
+    };
+    button.addEventListener('touchstart', this.dragStart, false);
+    button.addEventListener('touchend', this.dragEnd, false);
+    button.addEventListener('touchmove', this.drag, false);
+    button.addEventListener('mousedown', this.dragStart, false);
+    button.addEventListener('mouseup', this.dragEnd, false);
+    button.addEventListener('mousemove', this.drag, false);
+    button.addEventListener('mouseleave', this.dragEnd, false);
+    if (this.isFullscreen) {
+      const savedPosition = JSON.parse(localStorage.getItem('buttonPosition')) || {
+        x: 0,
+        y: 0
+      };
+      xOffset = savedPosition.x;
+      yOffset = savedPosition.y;
+      button.style.bottom = `${yOffset}px`;
+    }
+  }
+  setupDraggableButton() {
+    const button = document.querySelector('.fullscreen-btn');
+    this.enableDrag();
+  }
+  toggleSidebar(open) {
+    const sidebar = document.getElementById('sidebar');
+    this.isSidebarOpen = open !== undefined ? open : !this.isSidebarOpen;
+    if (this.isSidebarOpen) {
+      sidebar.classList.add('open');
+    } else {
+      sidebar.classList.remove('open');
+    }
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  projectManager = new ProjectManager();
+  projectManager.setupDraggableButton();
+});
+function createNewProject() {
+  const name = prompt('Ingrese el nombre del nuevo proyecto:');
+  if (name) {
+    if (!projectManager.createProject(name)) {
+      alert('No se pudo crear el proyecto. Por favor, intente de nuevo.');
+    }
+  }
+}
+function saveProject() {
+  const name = document.getElementById('projectName').value;
+  const code = document.getElementById('codeInput').value;
+  if (!projectManager.saveProject(name, code)) {
+    alert('No se pudo guardar el proyecto. Por favor, intente de nuevo.');
+  }
+}
+function toggleEditMode() {
+  projectManager.setEditMode(!projectManager.isEditMode);
+}
+function toggleFullscreen() {
+  projectManager.toggleFullscreen();
+}
+function toggleSidebar() {
+  projectManager.toggleSidebar();
+}</script>
+</body>
+</html>
