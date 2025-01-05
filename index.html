@@ -3,7 +3,7 @@
     <base href=".">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplicaciones GHS</title>
+    <title>Aplicacion GHS</title>
     <style>
         :root {
             --primary-color: #1a1f2c;
@@ -614,71 +614,104 @@
     </div>
 
     <script>let projectManager;
+const DB_NAME = 'ghs_projects';
+const DB_VERSION = 1;
+const OBJECT_STORE_NAME = 'projects';
 class ProjectManager {
   constructor() {
-    try {
-      this.projects = JSON.parse(localStorage.getItem('projects')) || {};
-    } catch (error) {
-      console.error('Error loading projects from localStorage:', error);
-      this.projects = {};
-    }
+    this.projects = {};
     this.currentProject = null;
     this.isFullscreen = false;
     this.isEditMode = true;
     this.isSidebarOpen = false;
     this.init();
   }
-  saveToLocalStorage() {
+  async init() {
+    await this.loadProjectsFromIndexedDB();
+    this.renderProjectList();
+    this.setupEventListeners();
+    this.toggleSidebar(false);
+    this.setupDraggableButton();
+  }
+  async openDatabase() {
+    return new Promise((resolve, reject) => {
+      const DB_NAME = 'projectsDB';
+      const DB_VERSION = 1;
+      const OBJECT_STORE_NAME = 'projects';
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onerror = event => {
+        console.error('Error opening database', event);
+        reject('Error opening database');
+      };
+      request.onsuccess = event => {
+        resolve(event.target.result);
+      };
+      request.onupgradeneeded = event => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(OBJECT_STORE_NAME)) {
+          db.createObjectStore(OBJECT_STORE_NAME, {
+            keyPath: 'name'
+          });
+        }
+      };
+    });
+  }
+  async loadProjectsFromIndexedDB() {
     try {
-      localStorage.setItem('projects', JSON.stringify(this.projects));
-      return true;
+      const db = await this.openDatabase();
+      const transaction = db.transaction('projects', 'readonly');
+      const store = transaction.objectStore('projects');
+      const getAllRequest = store.getAll();
+      getAllRequest.onsuccess = event => {
+        const projectsArray = event.target.result;
+        this.projects = projectsArray.reduce((acc, project) => {
+          acc[project.name] = project;
+          return acc;
+        }, {});
+        this.renderProjectList();
+      };
+      getAllRequest.onerror = event => {
+        console.error('Error loading projects from IndexedDB', event);
+        alert('Error al cargar proyectos desde IndexedDB');
+      };
+      db.close();
     } catch (error) {
-      console.error('Error saving to localStorage:', error);
-      alert('Error al guardar el proyecto. Es posible que el almacenamiento esté lleno.');
-      return false;
+      console.error('Error loading projects:', error);
+      alert('Error al cargar proyectos');
     }
   }
-  saveProject(name, code) {
+  async saveProject(name, code) {
     if (!name) {
       alert('Por favor, ingrese un nombre para el proyecto');
       return false;
     }
     try {
-      this.projects[name] = {
+      const db = await this.openDatabase();
+      const transaction = db.transaction('projects', 'readwrite');
+      const store = transaction.objectStore('projects');
+      const project = {
         name: name,
         code: code,
         lastModified: new Date().toISOString()
       };
-      if (this.saveToLocalStorage()) {
+      const request = store.put(project);
+      request.onsuccess = () => {
+        this.projects[name] = project;
         this.renderProjectList();
         this.setEditMode(false);
         this.updatePreview(code);
-        return true;
-      }
-      return false;
+        db.close();
+      };
+      request.onerror = event => {
+        console.error('Error saving project to IndexedDB', event);
+        alert('Error al guardar el proyecto en IndexedDB');
+      };
+      return true;
     } catch (error) {
-      console.error('Error saving project:', error);
+      console.error('Error saving project', error);
       alert('Error al guardar el proyecto');
       return false;
     }
-  }
-  checkStorageAvailability() {
-    try {
-      const test = '__storage_test__';
-      localStorage.setItem(test, test);
-      localStorage.removeItem(test);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-  init() {
-    if (!this.checkStorageAvailability()) {
-      alert('¡Advertencia! El almacenamiento local no está disponible. Sus proyectos no se guardarán entre sesiones.');
-    }
-    this.renderProjectList();
-    this.setupEventListeners();
-    this.toggleSidebar(false);
   }
   renderProjectList() {
     const projectList = document.getElementById('projectList');
@@ -777,8 +810,9 @@ class ProjectManager {
             this.projects[fileName].code = code;
             delete this.projects[this.currentProject];
             this.currentProject = fileName;
-            this.saveToLocalStorage();
-            this.renderProjectList();
+            this.saveProject(fileName, code).then(() => {
+              this.renderProjectList();
+            });
           }
         };
         reader.onerror = error => {
@@ -800,7 +834,7 @@ class ProjectManager {
       }
     });
   }
-  createProject(name) {
+  async createProject(name) {
     if (!name) {
       alert('Por favor, ingrese un nombre para el proyecto');
       return false;
@@ -811,36 +845,62 @@ class ProjectManager {
       }
     }
     try {
-      this.projects[name] = {
+      const db = await this.openDatabase();
+      const transaction = db.transaction('projects', 'readwrite');
+      const store = transaction.objectStore('projects');
+      const project = {
         name: name,
         code: '',
         lastModified: new Date().toISOString()
       };
-      if (this.saveToLocalStorage()) {
+      const request = store.put(project);
+      request.onsuccess = () => {
+        this.projects[name] = project;
         this.renderProjectList();
         this.loadProject(name);
         this.setEditMode(true);
+        db.close();
         return true;
-      }
-      return false;
+      };
+      request.onerror = event => {
+        console.error('Error creating project to IndexedDB', event);
+        alert('Error al crear el proyecto en IndexedDB');
+        return false;
+      };
     } catch (error) {
       console.error('Error creating project:', error);
       alert('Error al crear el proyecto');
       return false;
     }
   }
-  deleteProject(name, event) {
+  async deleteProject(name, event) {
     event.stopPropagation();
     if (confirm(`¿Está seguro que desea eliminar el proyecto "${name}"?`)) {
-      delete this.projects[name];
-      this.saveToLocalStorage();
-      this.renderProjectList();
-      if (this.currentProject === name) {
-        this.currentProject = null;
-        document.getElementById('projectName').value = '';
-        document.getElementById('codeInput').value = '';
-        document.getElementById('editButton').style.display = 'none';
-        this.updatePreview('');
+      try {
+        const db = await this.openDatabase();
+        const transaction = db.transaction('projects', 'readwrite');
+        const store = transaction.objectStore('projects');
+        const request = store.delete(name);
+        request.onsuccess = () => {
+          delete this.projects[name];
+          this.renderProjectList();
+          if (this.currentProject === name) {
+            this.currentProject = null;
+            document.getElementById('projectName').value = '';
+            document.getElementById('codeInput').value = '';
+            document.getElementById('editButton').style.display = 'none';
+            this.updatePreview('');
+          }
+          db.close();
+        };
+        request.onerror = event => {
+          console.error('Error deleting project from IndexedDB', event);
+          alert('Error al eliminar el proyecto de IndexedDB');
+          return;
+        };
+      } catch (error) {
+        console.error('Error deleting project:', error);
+        alert('Error al eliminar el proyecto');
       }
     }
   }
@@ -902,12 +962,6 @@ class ProjectManager {
     this.dragEnd = () => {
       isDragging = false;
       button.classList.remove('dragging');
-      if (this.isFullscreen) {
-        localStorage.setItem('buttonPosition', JSON.stringify({
-          x: xOffset,
-          y: yOffset
-        }));
-      }
     };
     this.drag = e => {
       if (isDragging) {
@@ -937,15 +991,6 @@ class ProjectManager {
     button.addEventListener('mouseup', this.dragEnd, false);
     button.addEventListener('mousemove', this.drag, false);
     button.addEventListener('mouseleave', this.dragEnd, false);
-    if (this.isFullscreen) {
-      const savedPosition = JSON.parse(localStorage.getItem('buttonPosition')) || {
-        x: 0,
-        y: 0
-      };
-      xOffset = savedPosition.x;
-      yOffset = savedPosition.y;
-      button.style.bottom = `${yOffset}px`;
-    }
   }
   setupDraggableButton() {
     const button = document.querySelector('.fullscreen-btn');
@@ -960,10 +1005,12 @@ class ProjectManager {
       sidebar.classList.remove('open');
     }
   }
+  checkStorageAvailability() {
+    return true;
+  }
 }
 document.addEventListener('DOMContentLoaded', () => {
   projectManager = new ProjectManager();
-  projectManager.setupDraggableButton();
 });
 function createNewProject() {
   const name = prompt('Ingrese el nombre del nuevo proyecto:');
