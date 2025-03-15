@@ -82,8 +82,13 @@ app.post('/api/chat/completions', async (req, res) => {
   }
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Visit http://localhost:${PORT} to view the application`);
-});
+// Para desarrollo local
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Visit http://localhost:${PORT} to view the application`);
+  });
+}
+
+// Exportar la app para Vercel
+module.exports = app;
