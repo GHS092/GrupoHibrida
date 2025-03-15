@@ -1,7 +1,13 @@
 const express = require('express');
 const path = require('path');
 const axios = require('axios');
-require('dotenv').config();
+
+// Configuración de variables de entorno
+// En Vercel, las variables de entorno se configuran en el dashboard
+// y están disponibles automáticamente
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -57,7 +63,7 @@ app.get('/style.css', (req, res) => {
 app.get('/api/config', (req, res) => {
   // Only expose necessary configuration values
   res.json({
-    adminAccessCode: process.env.ADMIN_ACCESS_CODE
+    adminAccessCode: process.env.ADMIN_ACCESS_CODE || 'default-code'
   });
 });
 
@@ -74,6 +80,11 @@ app.post('/api/chat/completions', async (req, res) => {
     
     console.log('Using API key:', openRouterApiKey.substring(0, 10) + '...');
     
+    // Determinar la URL de referencia
+    const refererUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://grupo-hibrida-ucal.vercel.app' 
+      : 'http://localhost:3000';
+    
     // Make request to OpenRouter API using Gemini model
     const response = await axios.post(
       'https://openrouter.ai/api/v1/chat/completions',
@@ -86,7 +97,7 @@ app.post('/api/chat/completions', async (req, res) => {
         headers: {
           'Authorization': `Bearer ${openRouterApiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': process.env.NODE_ENV === 'production' ? 'https://grupo-hibrida-ucal.vercel.app' : 'http://localhost:3000',
+          'HTTP-Referer': refererUrl,
           'X-Title': 'GHS Finanzas'
         }
       }

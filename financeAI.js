@@ -181,8 +181,11 @@ async function processUserMessage(message) {
     // Only keep the last 10 messages to manage context window
     const recentMessages = conversationHistory.slice(-10);
     
+    // Determinar la URL base
+    const baseUrl = window.location.origin;
+    
     // Call the AI model through our server API
-    const response = await fetch('/api/chat/completions', {
+    const response = await fetch(`${baseUrl}/api/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
