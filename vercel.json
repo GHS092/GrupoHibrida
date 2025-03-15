@@ -6,26 +6,37 @@
       "use": "@vercel/node"
     },
     {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.css",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.js",
+      "src": "public/**",
       "use": "@vercel/static"
     }
   ],
   "routes": [
     {
-      "src": "/(.+\\.(js|css|html|png|jpg|jpeg|gif|svg|ico))",
-      "dest": "/$1"
+      "src": "/public/(.*)",
+      "dest": "/public/$1"
+    },
+    {
+      "src": "/financeAI.js",
+      "headers": { "content-type": "application/javascript" },
+      "dest": "/server.js"
+    },
+    {
+      "src": "/neomorphic-buttons.css",
+      "headers": { "content-type": "text/css" },
+      "dest": "/server.js"
+    },
+    {
+      "src": "/style.css",
+      "headers": { "content-type": "text/css" },
+      "dest": "/server.js"
+    },
+    {
+      "src": "/test",
+      "dest": "/server.js"
     },
     {
       "src": "/(.*)",
-      "dest": "server.js"
+      "dest": "/server.js"
     }
   ],
   "headers": [

@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const axios = require('axios');
+const fs = require('fs');
 
 // Configuración de variables de entorno
 // En Vercel, las variables de entorno se configuran en el dashboard
@@ -27,36 +28,55 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files
-app.use(express.static(path.join(__dirname), {
+// Servir archivos estáticos desde la carpeta public
+app.use('/public', express.static(path.join(__dirname, 'public'), {
   setHeaders: (res, filePath) => {
     if (path.extname(filePath) === '.js') {
-      res.setHeader('Content-Type', 'application/javascript');
-    } else if (path.extname(filePath) === '.css') {
-      res.setHeader('Content-Type', 'text/css');
+      res.set('Content-Type', 'application/javascript');
     }
   }
 }));
+
+// Serve static files - Simplificado para evitar conflictos
+app.use(express.static(path.join(__dirname)));
 
 // Route for the home page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Rutas específicas para archivos estáticos
+// Ruta para la página de prueba
+app.get('/test', (req, res) => {
+  res.sendFile(path.join(__dirname, 'test.html'));
+});
+
+// Rutas específicas para archivos estáticos con tipos MIME explícitos
 app.get('/financeAI.js', (req, res) => {
-  res.setHeader('Content-Type', 'application/javascript');
+  res.set('Content-Type', 'application/javascript');
   res.sendFile(path.join(__dirname, 'financeAI.js'));
 });
 
 app.get('/neomorphic-buttons.css', (req, res) => {
-  res.setHeader('Content-Type', 'text/css');
+  res.set('Content-Type', 'text/css');
   res.sendFile(path.join(__dirname, 'neomorphic-buttons.css'));
 });
 
 app.get('/style.css', (req, res) => {
-  res.setHeader('Content-Type', 'text/css');
+  res.set('Content-Type', 'text/css');
   res.sendFile(path.join(__dirname, 'style.css'));
+});
+
+// Ruta específica para el archivo test.js en la carpeta public
+app.get('/public/test.js', (req, res) => {
+  console.log('Solicitando /public/test.js');
+  if (fs.existsSync(path.join(__dirname, 'public', 'test.js'))) {
+    console.log('El archivo existe');
+    res.set('Content-Type', 'application/javascript');
+    res.sendFile(path.join(__dirname, 'public', 'test.js'));
+  } else {
+    console.log('El archivo no existe');
+    res.status(404).send('Archivo no encontrado');
+  }
 });
 
 // API endpoint for admin configuration
