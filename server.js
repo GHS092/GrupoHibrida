@@ -17,68 +17,6 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configuración de tipos MIME específicos
-app.use((req, res, next) => {
-  const ext = path.extname(req.path);
-  if (ext === '.js') {
-    res.type('application/javascript');
-  } else if (ext === '.css') {
-    res.type('text/css');
-  }
-  next();
-});
-
-// Servir archivos estáticos desde la carpeta public
-app.use('/public', express.static(path.join(__dirname, 'public'), {
-  setHeaders: (res, filePath) => {
-    if (path.extname(filePath) === '.js') {
-      res.set('Content-Type', 'application/javascript');
-    }
-  }
-}));
-
-// Serve static files - Simplificado para evitar conflictos
-app.use(express.static(path.join(__dirname)));
-
-// Route for the home page
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Ruta para la página de prueba
-app.get('/test', (req, res) => {
-  res.sendFile(path.join(__dirname, 'test.html'));
-});
-
-// Rutas específicas para archivos estáticos con tipos MIME explícitos
-app.get('/financeAI.js', (req, res) => {
-  res.set('Content-Type', 'application/javascript');
-  res.sendFile(path.join(__dirname, 'financeAI.js'));
-});
-
-app.get('/neomorphic-buttons.css', (req, res) => {
-  res.set('Content-Type', 'text/css');
-  res.sendFile(path.join(__dirname, 'neomorphic-buttons.css'));
-});
-
-app.get('/style.css', (req, res) => {
-  res.set('Content-Type', 'text/css');
-  res.sendFile(path.join(__dirname, 'style.css'));
-});
-
-// Ruta específica para el archivo test.js en la carpeta public
-app.get('/public/test.js', (req, res) => {
-  console.log('Solicitando /public/test.js');
-  if (fs.existsSync(path.join(__dirname, 'public', 'test.js'))) {
-    console.log('El archivo existe');
-    res.set('Content-Type', 'application/javascript');
-    res.sendFile(path.join(__dirname, 'public', 'test.js'));
-  } else {
-    console.log('El archivo no existe');
-    res.status(404).send('Archivo no encontrado');
-  }
-});
-
 // API endpoint for admin configuration
 app.get('/api/config', (req, res) => {
   // Only expose necessary configuration values
@@ -150,6 +88,19 @@ app.post('/api/chat/completions', async (req, res) => {
 
 // Para desarrollo local
 if (process.env.NODE_ENV !== 'production') {
+  // Servir archivos estáticos en desarrollo
+  app.use(express.static(path.join(__dirname)));
+  
+  // Rutas para páginas en desarrollo
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+  });
+  
+  app.get('/test', (req, res) => {
+    res.sendFile(path.join(__dirname, 'test.html'));
+  });
+  
+  // Iniciar servidor en desarrollo
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Visit http://localhost:${PORT} to view the application`);

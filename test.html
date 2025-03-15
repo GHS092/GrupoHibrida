@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prueba de Archivos Estáticos</title>
-    <link href="/neomorphic-buttons.css" rel="stylesheet">
+    <link href="neomorphic-buttons.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -63,7 +63,7 @@
         function testPublicJs() {
             // Cargar el script dinámicamente
             var script = document.createElement('script');
-            script.src = '/public/test.js';
+            script.src = 'public/test.js';
             script.onload = function() {
                 if (typeof testFunction === 'function') {
                     document.getElementById('public-js-test-result').textContent = testFunction();
@@ -72,7 +72,7 @@
                 }
             };
             script.onerror = function() {
-                document.getElementById('public-js-test-result').textContent = 'Error al cargar el archivo /public/test.js';
+                document.getElementById('public-js-test-result').textContent = 'Error al cargar el archivo public/test.js';
             };
             document.head.appendChild(script);
         }
@@ -80,7 +80,7 @@
         // Cargar financeAI.js dinámicamente
         window.addEventListener('DOMContentLoaded', function() {
             var script = document.createElement('script');
-            script.src = '/financeAI.js';
+            script.src = 'financeAI.js';
             script.onload = function() {
                 if (typeof toggleChatbot === 'function') {
                     document.getElementById('js-test-result').textContent = 'El archivo financeAI.js se cargó correctamente.';
@@ -89,7 +89,7 @@
                 }
             };
             script.onerror = function() {
-                document.getElementById('js-test-result').textContent = 'Error al cargar el archivo /financeAI.js';
+                document.getElementById('js-test-result').textContent = 'Error al cargar el archivo financeAI.js';
             };
             document.head.appendChild(script);
         });

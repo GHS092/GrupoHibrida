@@ -4605,8 +4605,11 @@
     // Fetch admin access code from server
     let ADMIN_ACCESS_CODE = '';
     
+    // Determinar la URL base
+    const baseUrl = " \;
+    
     // Fetch configuration from server when the page loads
-    fetch('api/config')
+    fetch(`${baseUrl}/api/config`)
       .then(response => response.json())
       .then(data => {
         ADMIN_ACCESS_CODE = data.adminAccessCode;

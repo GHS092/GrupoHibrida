@@ -1,9 +1,23 @@
 {
   "version": 2,
+  "buildCommand": "npm install",
+  "outputDirectory": ".",
   "builds": [
     {
       "src": "server.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.css",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.js",
+      "use": "@vercel/static"
     },
     {
       "src": "public/**",
@@ -12,42 +26,45 @@
   ],
   "routes": [
     {
+      "src": "/financeAI.js",
+      "dest": "/financeAI.js",
+      "headers": {
+        "content-type": "application/javascript; charset=utf-8"
+      }
+    },
+    {
+      "src": "/neomorphic-buttons.css",
+      "dest": "/neomorphic-buttons.css",
+      "headers": {
+        "content-type": "text/css; charset=utf-8"
+      }
+    },
+    {
+      "src": "/style.css",
+      "dest": "/style.css",
+      "headers": {
+        "content-type": "text/css; charset=utf-8"
+      }
+    },
+    {
       "src": "/public/(.*)",
       "dest": "/public/$1"
     },
     {
-      "src": "/financeAI.js",
-      "headers": { "content-type": "application/javascript" },
-      "dest": "/server.js"
-    },
-    {
-      "src": "/neomorphic-buttons.css",
-      "headers": { "content-type": "text/css" },
-      "dest": "/server.js"
-    },
-    {
-      "src": "/style.css",
-      "headers": { "content-type": "text/css" },
-      "dest": "/server.js"
-    },
-    {
       "src": "/test",
+      "dest": "/test.html"
+    },
+    {
+      "src": "/static-test",
+      "dest": "/static-test.html"
+    },
+    {
+      "src": "/api/(.*)",
       "dest": "/server.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/server.js"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Credentials", "value": "true" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
-        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
-      ]
+      "dest": "/$1"
     }
   ]
 } 
