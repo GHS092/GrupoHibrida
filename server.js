@@ -10,12 +10,47 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Configuración de tipos MIME específicos
+app.use((req, res, next) => {
+  const ext = path.extname(req.path);
+  if (ext === '.js') {
+    res.type('application/javascript');
+  } else if (ext === '.css') {
+    res.type('text/css');
+  }
+  next();
+});
+
 // Serve static files
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname), {
+  setHeaders: (res, filePath) => {
+    if (path.extname(filePath) === '.js') {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (path.extname(filePath) === '.css') {
+      res.setHeader('Content-Type', 'text/css');
+    }
+  }
+}));
 
 // Route for the home page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Rutas específicas para archivos estáticos
+app.get('/financeAI.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(path.join(__dirname, 'financeAI.js'));
+});
+
+app.get('/neomorphic-buttons.css', (req, res) => {
+  res.setHeader('Content-Type', 'text/css');
+  res.sendFile(path.join(__dirname, 'neomorphic-buttons.css'));
+});
+
+app.get('/style.css', (req, res) => {
+  res.setHeader('Content-Type', 'text/css');
+  res.sendFile(path.join(__dirname, 'style.css'));
 });
 
 // API endpoint for admin configuration
@@ -51,7 +86,7 @@ app.post('/api/chat/completions', async (req, res) => {
         headers: {
           'Authorization': `Bearer ${openRouterApiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'http://localhost:3000', // Local development URL
+          'HTTP-Referer': process.env.NODE_ENV === 'production' ? 'https://grupo-hibrida-ucal.vercel.app' : 'http://localhost:3000',
           'X-Title': 'GHS Finanzas'
         }
       }
